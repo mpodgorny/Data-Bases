@@ -1,0 +1,168 @@
+﻿1. SHOW TABLES;
+
+
+1. SELECT title FROM film WHERE length>120;
+
+
+1. SELECT title, name FROM film JOIN language ON film.language_id=language.language_id WHERE description LIKE "%Documentary%";
+
+
+1. SELECT title FROM film JOIN film_category ON film.film_id=film_category.film_id JOIN category ON film_category.category_id=category.category_id WHERE description NOT LIKE "%Documentary%" AND name="Documentary";
+
+
+1. SELECT DISTINCT first_name, last_name FROM actor JOIN film_actor ON actor.actor_id=film_actor.actor_id JOIN film ON film.film_id=film_actor.film_id WHERE special_features LIKE "%Deleted Scenes%";
+
+
+1. SELECT rating, COUNT(*) as count FROM film GROUP BY rating ORDER BY count DESC;
+
+
+1. SELECT DISTINCT title FROM film JOIN inventory ON film.film_id=inventory.film_id JOIN rental ON inventory.inventory_id=rental.inventory_id WHERE rental_date BETWEEN '2005-05-25 00:00:00' AND '2005-05-30 23:59:59' ORDER BY title;
+
+
+1. SELECT title FROM film WHERE rating="R" ORDER BY length DESC LIMIT 5;
+
+
+1. SELECT DISTINCT C.first_name, C.last_name
+FROM rental R JOIN rental RR ON R.customer_id = RR.customer_id JOIN customer C ON R.customer_id = C.customer_id
+WHERE R.staff_id < RR.staff_id
+
+
+
+
+   1.  SELECT country 
+FROM (
+                SELECT country, COUNT(city) AS cnt1 
+                FROM country 
+                JOIN city as c1 ON country.country_id=c1.country_id 
+                GROUP BY country
+   ) AS smth
+                JOIN (
+                SELECT COUNT(city) AS Canada 
+                FROM city
+                JOIN country c4 ON city.country_id=c4.country_id
+                WHERE c4.country LIKE "Canada"
+   ) AS smth2
+WHERE cnt1 >= Canada 
+GROUP BY country;
+   2. SELECT 
+first_name, last_name, rentals 
+FROM ( 
+        SELECT first_name, last_name, COUNT(rental_id) AS rentals 
+        FROM customer 
+        JOIN rental r1 ON customer.customer_id=r1.customer_id 
+        GROUP BY first_name, last_name) AS sometable
+JOIN (
+        SELECT COUNT(rental_id) AS pmenard
+        FROM customer JOIN rental r2 ON customer.customer_id=r2.customer_id
+        WHERE customer.email LIKE "PETER.MENARD@sakilacustomer.org"
+        GROUP BY first_name, last_name) AS sometable2
+WHERE rentals > pmenard;
+
+
+      1. SELECT *
+FROM (
+ SELECT ac1.first_name AS a1_fn, ac1.last_name AS a1_ln,
+        ac2.first_name AS a2_fn, ac2.last_name AS a2_ln,
+        count(*) AS num
+ FROM film_actor fa1
+ JOIN film_actor fa2 ON fa1.film_id = fa2.film_id
+ JOIN actor ac1 ON fa1.actor_id = ac1.actor_id
+ JOIN actor ac2 ON fa2.actor_id = ac2.actor_id
+ WHERE fa1.actor_id < fa2.actor_id
+ GROUP BY fa1.actor_id, fa2.actor_id
+) AS fa;
+
+
+
+
+         1. SELECT  last_name
+FROM actor JOIN film_actor fa ON actor.actor_id = fa.actor_id
+WHERE actor.actor_id NOT IN (
+ SELECT actor_id
+ FROM film_actor JOIN film ON film_actor.film_id = film.film_id
+ where title LIKE 'B%'
+)
+GROUP BY fa.actor_id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            1. CREATE VIEW horrors AS
+SELECT DISTINCT actor_id, COUNT(film_id) AS hr_num
+FROM film_actor
+ JOIN film_list ON FID=film_id
+WHERE category='Horror'
+GROUP BY actor_id
+ORDER BY actor_id;
+
+CREATE VIEW actions AS
+SELECT DISTINCT actor_id, COUNT(film_id) AS ac_num
+FROM film_actor
+ JOIN film_list ON FID=film_id
+WHERE category='Action'
+GROUP BY actor_id
+ORDER BY actor_id;
+
+CREATE VIEW horrors_actions AS
+SELECT hr.actor_id, hr_num, ac_num
+FROM horrors hr LEFT JOIN actions ac ON ac.actor_id = hr.actor_id;
+
+SELECT last_name
+FROM horrors_actions
+JOIN actor a ON horrors_actions.actor_id = a.actor_id
+WHERE hr_num > ac_num OR ISNULL(ac_num)
+GROUP BY a.actor_id
+ORDER BY last_name;
+
+
+               1. CREATE VIEW avg_amount_for_customers AS
+SELECT customer_id, AVG(amount) AS avg_amount
+FROM payment
+GROUP BY customer_id;
+
+SELECT customer_id
+FROM avg_amount_for_customers
+WHERE avg_amount > (SELECT AVG(amount) FROM payment WHERE payment_date LIKE '2005-07-07%');
+
+
+                  1. ALTER TABLE language
+ADD COLUMN films_no INT NOT NULL AFTER name;
+
+UPDATE language SET films_no = (SELECT COUNT(title) from film WHERE film.language_id=language.language_id );
+
+
+
+
+
+
+                     1. UPDATE film
+SET language_id = (SELECT language_id FROM language WHERE name = 'Mandarin')
+WHERE title = 'WON DARES';
+
+
+UPDATE film
+SET language_id = (SELECT language_id FROM language WHERE name = 'German')
+WHERE film_id IN (
+ SELECT film_id FROM film_actor JOIN actor a ON film_actor.actor_id = a.actor_id
+ WHERE first_name = 'NICK' AND last_name = 'WAHLBERG'
+);
+
+
+                        1. ALTER TABLE film
+   DROP COLUMN release_year;
